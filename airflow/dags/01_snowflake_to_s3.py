@@ -47,6 +47,8 @@ export SPARK_SUBMIT_OPTS="${{SPARK_SUBMIT_OPTS:-}} -Djava.io.tmpdir={SPARK_TMP_D
 
 export AWS_DEFAULT_REGION={AWS_REGION}
 export AWS_REGION={AWS_REGION}
+export S3_BUCKET="{{{{ var.value.s3_bucket }}}}"
+test -n "$S3_BUCKET"
 export SNOWFLAKE_SECRET_ID="{{{{ var.value.snowflake_secret_id }}}}"
 RUN_DATE="{{{{ dag_run.conf.get('run_date', ds) }}}}"
 
