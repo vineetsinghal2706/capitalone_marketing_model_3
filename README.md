@@ -49,14 +49,14 @@ The secret's **SecretString** must be a JSON object. Common lowercase keys or th
 
 The `account` value may be an account identifier or a Snowflake hostname. An optional `url` key can supply the full host. Do not put actual credentials in README files, GitHub Actions variables, or DAG configuration.
 
-### Tell local Airflow which existing secret to use
+### Configure runtime values in Airflow
 
-In the **local Airflow UI**, open **Admin → Variables** and create:
+In the **local Airflow UI**, open **Admin → Variables** and create these variables:
 
-- **Key:** `snowflake_secret_id`
-- **Value:** the name or ARN of your existing Secrets Manager secret
+- **Key:** `snowflake_secret_id`; **Value:** the name or ARN of your existing Secrets Manager secret.
+- **Key:** `s3_bucket`; **Value:** the name of your target S3 bucket.
 
-This is only the secret identifier, not the password. DAG 1 passes the identifier to EC2; credentials are retrieved by the EC2 instance role.
+These values are injected at runtime by the DAGs. The bucket name is not hard-coded in the Python jobs or DAG files. The secret identifier is not the password; Snowflake credentials are retrieved by the EC2 instance role.
 
 ### EC2 IAM permissions
 
@@ -118,9 +118,11 @@ All DAGs have `schedule=None`; trigger DAG 1 manually in the local Airflow UI. T
 
 ## 5. S3 output locations
 
-- Raw extraction: `s3://bank-marketing-ml-poc-vineet/raw/{run_date}/`
-- Feature data: `s3://bank-marketing-ml-poc-vineet/processed/marketing_features/{run_date}/`
-- Scoring output: `s3://bank-marketing-ml-poc-vineet/output/model_v1/{run_date}/`
+All jobs use the bucket provided through the Airflow Variable `s3_bucket` (exported to each EC2 process as `S3_BUCKET`).
+
+- Raw extraction: `s3://<S3_BUCKET>/raw/{run_date}/`
+- Feature data: `s3://<S3_BUCKET>/processed/marketing_features/{run_date}/`
+- Scoring output: `s3://<S3_BUCKET>/output/model_v1/{run_date}/`
 
 The scripts clear objects under the matching run-date prefix before publishing new files. Avoid overlapping runs for the same date.
 
