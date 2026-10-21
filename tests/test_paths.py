@@ -24,6 +24,7 @@ def test_dag1_runs_extraction_remotely_and_passes_secret_identifier():
     assert "jobs/snowflake_to_s3.py" in dag1
     assert "trigger_preprocessing" in dag1
     assert "/etc/capitalone-marketing.env" not in dag1
+    assert "var.value.s3_bucket" in dag1
 
 
 def test_extraction_reads_credentials_from_secrets_manager():
@@ -32,6 +33,8 @@ def test_extraction_reads_credentials_from_secrets_manager():
     assert "get_secret_value(SecretId=secret_id)" in extraction
     assert "SNOWFLAKE_SECRET_ID" in extraction
     assert 'required_env("SNOWFLAKE_PASSWORD")' not in extraction
+    assert 'required_env("S3_BUCKET")' in extraction
+    assert 'os.getenv("S3_BUCKET",' not in extraction
 
 
 def test_dag2_runs_preprocessing_remotely():
@@ -39,6 +42,20 @@ def test_dag2_runs_preprocessing_remotely():
     assert "SsmRunCommandOperator" in dag2
     assert "jobs/preprocessing.py" in dag2
     assert "trigger_scoring" in dag2
+    assert "var.value.s3_bucket" in dag2
+
+
+def test_s3_bucket_is_not_hardcoded_in_jobs_or_dags():
+    extraction = Path("jobs/snowflake_to_s3.py").read_text()
+    preprocessing = Path("jobs/preprocessing.py").read_text()
+    scoring_dag = Path("airflow/dags/03_batch_scoring.py").read_text()
+    preprocessing_dag = Path("airflow/dags/02_preprocessing.py").read_text()
+    assert 'os.getenv("S3_BUCKET",' not in preprocessing
+    assert 'required_env("S3_BUCKET")' in preprocessing
+    assert "var.value.s3_bucket" in scoring_dag
+    assert "var.value.s3_bucket" in preprocessing_dag
+    assert "BUCKET =" not in scoring_dag
+    assert "BUCKET =" not in preprocessing_dag
 
 
 def test_no_docker_deployment_files():
