@@ -15,7 +15,6 @@ from pathlib import Path
 import boto3
 from pyspark.sql import SparkSession
 
-BUCKET = os.getenv("S3_BUCKET", "bank-marketing-ml-poc-vineet")
 SNOWFLAKE_QUERY = """
     SELECT *
     FROM INGEST_DATA.PUBLIC.CUSTOMERS
@@ -153,7 +152,7 @@ def upload_parquet_directory(s3, local_dir, bucket, prefix):
 
 def main():
     args = get_args()
-    bucket = BUCKET
+    bucket = required_env("S3_BUCKET")
     prefix = f"raw/{args.run_date}/"
     spark_package = os.getenv("SNOWFLAKE_SPARK_CONNECTOR_PACKAGE", DEFAULT_SPARK_PACKAGE)
 
