@@ -16,12 +16,22 @@ def test_required_project_files_exist():
         assert Path(path).exists(), path
 
 
-def test_dag1_runs_extraction_remotely_and_loads_ec2_environment_file():
+def test_dag1_runs_extraction_remotely_and_passes_secret_identifier():
     dag1 = Path("airflow/dags/01_snowflake_to_s3.py").read_text()
     assert "SsmRunCommandOperator" in dag1
-    assert "/etc/capitalone-marketing.env" in dag1
+    assert "snowflake_secret_id" in dag1
+    assert "SNOWFLAKE_SECRET_ID" in dag1
     assert "jobs/snowflake_to_s3.py" in dag1
     assert "trigger_preprocessing" in dag1
+    assert "/etc/capitalone-marketing.env" not in dag1
+
+
+def test_extraction_reads_credentials_from_secrets_manager():
+    extraction = Path("jobs/snowflake_to_s3.py").read_text()
+    assert 'boto3.client("secretsmanager"' in extraction
+    assert "get_secret_value(SecretId=secret_id)" in extraction
+    assert "SNOWFLAKE_SECRET_ID" in extraction
+    assert 'required_env("SNOWFLAKE_PASSWORD")' not in extraction
 
 
 def test_dag2_runs_preprocessing_remotely():
