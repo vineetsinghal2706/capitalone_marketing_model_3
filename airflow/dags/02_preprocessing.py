@@ -9,7 +9,6 @@ local_tz = pendulum.timezone("Asia/Kolkata")
 AWS_REGION = "us-east-1"
 EC2_INSTANCE_ID = "i-06ea3e388448b991c"
 APP_DIR = "/opt/capitalone_marketing_model_3"
-BUCKET = "bank-marketing-ml-poc-vineet"
 
 
 with DAG(
@@ -36,7 +35,8 @@ test -x .venv/bin/python
 test -f jobs/preprocessing.py
 
 export AWS_DEFAULT_REGION={AWS_REGION}
-export S3_BUCKET={BUCKET}
+export S3_BUCKET="{{{{ var.value.s3_bucket }}}}"
+test -n "$S3_BUCKET"
 RUN_DATE="{{{{ dag_run.conf.get('run_date', ds) }}}}"
 
 echo "Starting PySpark preprocessing for $RUN_DATE on EC2"
