@@ -104,7 +104,7 @@ cd /opt/capitalone_marketing_model_3
 .venv/bin/python -m pytest -q
 ```
 
-The GitHub Actions deployment workflow is manual-dispatch only. It requires the repository variable `AWS_DEPLOY_ROLE_ARN` and a correctly configured GitHub OIDC trust/policy before it can deploy. Alternatively, update the checked-out code on EC2 using your approved deployment method.
+GitHub Actions validates pushes and pull requests automatically. The deployment job runs only when you manually start the `workflow_dispatch` workflow, so copying or pushing code does not automatically deploy it to EC2. Manual deployment requires the repository variable `AWS_DEPLOY_ROLE_ARN` and a correctly configured GitHub OIDC trust/policy.
 
 ## 4. DAGs and local Airflow folder
 
