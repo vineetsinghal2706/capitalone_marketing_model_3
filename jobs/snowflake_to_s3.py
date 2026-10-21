@@ -202,6 +202,22 @@ def main():
         )
     finally:
         spark.stop()
+def configure_spark_temp_dir():
+    """Place Spark and JVM temporary files on disk-backed storage."""
+    Path(SPARK_TMP_DIR).mkdir(parents=True, exist_ok=True)
+
+    os.environ["TMPDIR"] = SPARK_TMP_DIR
+    os.environ["SPARK_LOCAL_DIRS"] = SPARK_TMP_DIR
+
+    java_tmp_option = f"-Djava.io.tmpdir={SPARK_TMP_DIR}"
+    submit_opts = os.environ.get(
+        "SPARK_SUBMIT_OPTS", ""
+    ).strip()
+
+    if java_tmp_option not in submit_opts:
+        os.environ["SPARK_SUBMIT_OPTS"] = (
+            f"{submit_opts} {java_tmp_option}"
+        ).strip()
 
 
 if __name__ == "__main__":
