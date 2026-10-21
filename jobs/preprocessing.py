@@ -9,7 +9,6 @@ from pyspark.sql.functions import (
     col, trim, lower, when, log1p, month, quarter, dayofweek, sin, cos, lit,
 )
 
-BUCKET = os.getenv("S3_BUCKET", "bank-marketing-ml-poc-vineet")
 TARGET = "campaign_response"
 NUMERIC_FEATURES = [
     "age", "annual_income", "tenure_months", "credit_score", "existing_products",
@@ -18,6 +17,13 @@ NUMERIC_FEATURES = [
     "marketing_contacts_90d", "days_since_last_txn",
 ]
 CATEGORICAL_FEATURES = ["customer_segment", "acquisition_channel", "employment_type"]
+
+
+def required_env(name):
+    value = os.getenv(name)
+    if not value or not value.strip():
+        raise RuntimeError(f"Required environment variable is not set: {name}")
+    return value.strip()
 
 
 def parse_s3_uri(uri):
@@ -120,7 +126,8 @@ def main():
     parser.add_argument("--run-date", required=True)
     args = parser.parse_args()
     run_date = args.run_date
-    input_uri = f"s3://{BUCKET}/raw/{run_date}/"
+    bucket = required_env("S3_BUCKET")
+    input_uri = f"s3://{bucket}/raw/{run_date}/"
     output_prefix = f"processed/marketing_features/{run_date}/"
     s3 = boto3.client("s3")
 
@@ -154,9 +161,9 @@ def main():
             print(f"Input records: {input_count:,}")
             print(f"Processed records: {processed_count:,}")
             processed.repartition(5).write.mode("overwrite").parquet(local_output)
-            clear_s3_prefix(s3, BUCKET, output_prefix)
-            file_count = upload_parquet_directory(s3, local_output, BUCKET, output_prefix)
-            print(f"Processed data written to s3://{BUCKET}/{output_prefix} ({file_count} files)")
+            clear_s3_prefix(s3, bucket, output_prefix)
+            file_count = upload_parquet_directory(s3, local_output, bucket, output_prefix)
+            print(f"Processed data written to s3://{bucket}/{output_prefix} ({file_count} files)")
         finally:
             spark.stop()
 
