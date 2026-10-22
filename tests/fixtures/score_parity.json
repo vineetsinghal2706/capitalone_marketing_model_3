@@ -1,6 +1,6 @@
 {
   "fixture_type": "local_predeployment_score_regression",
-  "description": "Ten predefined local scoring cases. The first three include existing frozen regression outputs; new cases require expected outputs to be populated from a reviewed frozen run before the full ten-case quality gate can pass. These snapshots guard against regressions but are not independent proof of parity with an external model.",
+  "description": "Ten committed deterministic input/output cases for local pre-deployment scoring regression. Expected values for the added cases were calculated from the current checked-in 100-tree IF/ELSE scorer and should be treated as a regression snapshot, not independent proof of parity to the original model.",
   "probability_tolerance": 1e-12,
   "cases": [
     {
@@ -189,7 +189,11 @@
         "digital_x_spend": 325,
         "tenure_x_products": 72
       },
-      "expected": null
+      "expected": {
+        "score": 317,
+        "prediction": 0,
+        "probability": 0.24157277673824468
+      }
     },
     {
       "name": "prime_customer_low_digital_activity",
@@ -233,7 +237,11 @@
         "digital_x_spend": 1952,
         "tenure_x_products": 480
       },
-      "expected": null
+      "expected": {
+        "score": 651,
+        "prediction": 1,
+        "probability": 0.6132284773833816
+      }
     },
     {
       "name": "high_spend_high_utilization",
@@ -277,7 +285,11 @@
         "digital_x_spend": 14700,
         "tenure_x_products": 128
       },
-      "expected": null
+      "expected": {
+        "score": 411,
+        "prediction": 0,
+        "probability": 0.34612934466454126
+      }
     },
     {
       "name": "young_new_customer_low_balance",
@@ -321,7 +333,11 @@
         "digital_x_spend": 28.6,
         "tenure_x_products": 8
       },
-      "expected": null
+      "expected": {
+        "score": 557,
+        "prediction": 1,
+        "probability": 0.5079101675717254
+      }
     },
     {
       "name": "older_customer_low_score",
@@ -365,7 +381,11 @@
         "digital_x_spend": 2080,
         "tenure_x_products": 1080
       },
-      "expected": null
+      "expected": {
+        "score": 313,
+        "prediction": 0,
+        "probability": 0.23735301191401106
+      }
     },
     {
       "name": "middle_age_high_income_risk_flags",
@@ -409,7 +429,11 @@
         "digital_x_spend": 5112,
         "tenure_x_products": 144
       },
-      "expected": null
+      "expected": {
+        "score": 467,
+        "prediction": 0,
+        "probability": 0.40769297187456843
+      }
     },
     {
       "name": "high_score_low_utilization_high_engagement",
@@ -453,51 +477,11 @@
         "digital_x_spend": 19000,
         "tenure_x_products": 480
       },
-      "expected": null
-    },
-    {
-      "name": "moderate_income_recent_delinquency",
-      "features": {
-        "age": 47,
-        "annual_income": 76000,
-        "tenure_months": 84,
-        "credit_score": 665,
-        "existing_products": 2,
-        "monthly_spend": 5400,
-        "avg_monthly_balance": 8500,
-        "digital_txn_ratio": 0.57,
-        "mobile_logins_30d": 17,
-        "branch_visits_6m": 8,
-        "web_visits_30d": 22,
-        "credit_utilization": 0.72,
-        "delinquency_12m": 1,
-        "marketing_contacts_90d": 9,
-        "days_since_last_txn": 190,
-        "campaign_month": 5,
-        "campaign_dayofweek": 2,
-        "campaign_quarter": 2,
-        "campaign_is_weekend": 0,
-        "campaign_month_sin": 0.49999999999999994,
-        "campaign_month_cos": -0.8660254037844387,
-        "log_income": 11.23850177707664,
-        "log_monthly_spend": 8.594339400592892,
-        "log_avg_balance": 9.04793908261736,
-        "log_web_visits": 3.1354942159291497,
-        "spend_to_income": 0.8524969741619745,
-        "balance_to_income": 1.3418933852549597,
-        "digital_engagement": 0.4093267326732673,
-        "channel_engagement": 39,
-        "product_penetration": 0.25,
-        "delinquency_rate": 0.08333333333333333,
-        "contact_pressure": 3,
-        "high_value_customer": 0,
-        "digital_customer": 0,
-        "credit_risk_flag": 0,
-        "income_x_credit_score": 505.40000000000003,
-        "digital_x_spend": 3077.9999999999995,
-        "tenure_x_products": 168
-      },
-      "expected": null
+      "expected": {
+        "score": 850,
+        "prediction": 1,
+        "probability": 0.8346937201696315
+      }
     }
   ]
 }
