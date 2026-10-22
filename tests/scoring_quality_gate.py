@@ -418,23 +418,24 @@ def main():
         scoring = compare_scoring_output(frame, probability_tolerance)
         report["scoring_parity"] = scoring
 
-        # Keep a human-readable ten-row sample in the report in addition to
-        # checking all 1,000 reference outputs.
-        preview_columns = [
-            ID_COLUMN,
-            EXPECTED_SCORE_COLUMN,
-            EXPECTED_PREDICTION_COLUMN,
-            EXPECTED_PROBABILITY_COLUMN,
-        ]
-        preview = frame[preview_columns].head(10).copy()
-        preview = preview.rename(
-            columns={
-                EXPECTED_SCORE_COLUMN: "expected_score",
-                EXPECTED_PREDICTION_COLUMN: "expected_prediction",
-                EXPECTED_PROBABILITY_COLUMN: "expected_probability",
-            }
-        )
-        report["first_10_reference_cases"] = preview.to_dict(orient="records")
+        # Keep ten explicit expected-vs-actual cases in the report; the parity
+        # gate above still checks every one of the 1,000 records.
+        preview_inputs = frame[FEATURE_NAMES].head(10)
+        preview_scored = score_dataframe(preview_inputs)
+        preview_cases = []
+        for i in range(min(10, len(frame))):
+            preview_cases.append(
+                {
+                    "customer_id": str(frame.iloc[i][ID_COLUMN]),
+                    "expected_score": int(frame.iloc[i][EXPECTED_SCORE_COLUMN]),
+                    "actual_score": int(preview_scored.iloc[i]["score"]),
+                    "expected_prediction": int(frame.iloc[i][EXPECTED_PREDICTION_COLUMN]),
+                    "actual_prediction": int(preview_scored.iloc[i]["prediction"]),
+                    "expected_probability": float(frame.iloc[i][EXPECTED_PROBABILITY_COLUMN]),
+                    "actual_probability": float(preview_scored.iloc[i]["probability"]),
+                }
+            )
+        report["first_10_reference_cases"] = preview_cases
 
         if not scoring["passed"]:
             raise GateFailure(
