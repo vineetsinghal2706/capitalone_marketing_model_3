@@ -11,6 +11,7 @@ def test_required_project_files_exist():
         "airflow/dags/03_batch_scoring.py",
         "scoring/score_if_else.py",
         "tests/scoring_quality_gate.py",
+        "tests/build_scoring_fixture.py",
         "tests/test_quality_gate_unit.py",
         "tests/fixtures/score_parity.json",
     ]
