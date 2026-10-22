@@ -105,6 +105,7 @@ jobs:
               "mkdir -p \"$TMPDIR\" && chmod 700 \"$TMPDIR\"",
               ".venv/bin/python -m pip install --no-cache-dir --upgrade pip",
               ".venv/bin/pip install --no-cache-dir -r requirements.txt",
+              ".venv/bin/python -m pip uninstall -y mlflow sagemaker-mlflow || true",
               "rm -rf /root/.cache/pip \"$TMPDIR\"",
               "echo '===== DISK SPACE AFTER INSTALL ====='",
               "df -h / /opt /tmp || true",
