@@ -448,9 +448,6 @@ def main():
         f"Model          : {MODEL_NAME}"
     )
 
-    print(
-        f"Model version  : {MODEL_VERSION}"
-    )
 
     print(
         f"Trees          : {NUMBER_OF_TREES}"
