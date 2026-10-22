@@ -25,8 +25,7 @@ def test_job_cli_help_smoke():
         ("jobs/snowflake_to_s3.py", ["--run-date"]),
         ("jobs/preprocessing.py", ["--run-date"]),
         ("jobs/batch_score.py", ["--run-date", "--input-s3", "--output-s3", "--metrics-s3"]),
-        ("tests/scoring_quality_gate.py", ["--mode", "--sample-s3-uri", "--baseline-s3-uri"]),
-        ("tests/build_scoring_fixture.py", ["--input-s3-prefix", "--reference-output-s3-uri", "--output-s3-uri", "--rows"]),
+        ("tests/scoring_quality_gate.py", ["--fixture-path", "--baseline-path", "--report-path"]),
     ]
     for script, expected_options in checks:
         result = subprocess.run(
