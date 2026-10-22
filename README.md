@@ -105,7 +105,62 @@ cd /opt/capitalone_marketing_model_3
 .venv/bin/python -m pytest -q
 ```
 
-GitHub Actions validates pushes and pull requests automatically. The deployment job runs only when you manually start the `workflow_dispatch` workflow, so copying or pushing code does not automatically deploy it to EC2. Manual deployment requires the repository variable `AWS_DEPLOY_ROLE_ARN` and a correctly configured GitHub OIDC trust/policy.
+GitHub Actions validates pushes and pull requests. For pushes to `main` or a manually started `workflow_dispatch`, EC2 deployment is allowed only after both the validation job and the 1,000-row S3 scoring quality gate pass. The deploy job also requires the repository variable `AWS_DEPLOY_ROLE_ARN` and a correctly configured GitHub OIDC trust/policy. Pull requests run validation but do not deploy.
+
+## Pre-deployment scoring quality gate
+
+Before a push to `main` can deploy to EC2, the workflow runs the following checks:
+
+1. **Syntax:** `python -m compileall -q jobs scoring airflow tests`.
+2. **Required files and smoke checks:** verifies pipeline entrypoints and DAG files exist, the scoring module imports, and all three job entrypoints parse `--help`.
+3. **Golden score regression:** compares checked-in sample cases to fixed expected scores/probabilities. These are regression snapshots; independent model-accuracy certification requires outputs from the modeling-team-approved reference scorer.
+4. **1,000-row S3 score parity:** reads a Parquet test fixture containing exactly 1,000 unique records, all 38 `FEATURE_NAMES`, and reference `expected_score`, `expected_prediction`, and `expected_probability` columns. It runs the current scorer against all rows and compares every output to the trusted expected values. The report also includes the first ten input/expected/actual cases.
+5. **Feature profile and drift gate:** calculates missing count/rate, mean, sample standard deviation, minimum and maximum for every model feature. It compares missingness, mean and standard deviation to a frozen baseline. Any mismatch or threshold violation fails the job and prevents EC2 deployment.
+
+### Configure the S3 fixture and baseline
+
+Put these two reviewed objects in your S3 bucket (example paths only):
+
+- `s3://<S3_BUCKET>/testing/scoring/sample_1000_with_expected_outputs.parquet`
+- `s3://<S3_BUCKET>/testing/scoring/baseline_feature_profile.json`
+
+The Parquet fixture must have exactly 1,000 rows and these columns:
+
+- `customer_id`: unique identifier per test row.
+- All 38 input features listed in `scoring/score_if_else.py` (`FEATURE_NAMES`).
+- `expected_score`, `expected_prediction`, and `expected_probability`: fixed outputs from your approved reference implementation. Do not derive these expected values from the same version being tested if you need independent model-accuracy validation.
+
+In GitHub, open **Settings → Secrets and variables → Actions → Variables** and add:
+
+- `SCORING_TEST_SAMPLE_S3_URI`: the full S3 URI of the 1,000-row Parquet fixture.
+- `SCORING_TEST_BASELINE_S3_URI`: the full S3 URI of the frozen feature-profile JSON.
+
+The IAM role referenced by `AWS_DEPLOY_ROLE_ARN` must be allowed to read both S3 objects (`s3:GetObject`; also `kms:Decrypt` if they use a customer-managed KMS key). The GitHub OIDC trust policy must allow the repository's `main` branch to assume that role.
+
+### Create the baseline once
+
+After the test fixture's expected outputs have been checked and approved, generate a baseline profile once:
+
+```bash
+python -m pip install -r requirements.txt
+python tests/scoring_quality_gate.py \
+  --mode create-baseline \
+  --sample-s3-uri "s3://<S3_BUCKET>/testing/scoring/sample_1000_with_expected_outputs.parquet" \
+  --baseline-out baseline_feature_profile.json \
+  --report-path baseline_creation_report.json
+```
+
+Review the baseline and report, then upload the approved baseline JSON to the path configured in `SCORING_TEST_BASELINE_S3_URI`:
+
+```bash
+aws s3 cp baseline_feature_profile.json \
+  "s3://<S3_BUCKET>/testing/scoring/baseline_feature_profile.json" \
+  --region us-east-1
+```
+
+The baseline contains per-feature missingness/mean/std-dev statistics and default drift thresholds: a maximum missing-rate change of 2 percentage points, a mean movement of 0.5 baseline standard deviations, and a 25% relative standard-deviation change. Adjust them only after reviewing the feature definitions and expected natural variability. Do not regenerate the baseline in routine CI; otherwise drift checks would reset themselves. Every run uploads `scoring-quality-report` as a GitHub Actions artifact, including feature statistics and the ten sample comparisons.
+
+**Scope note:** this pre-deployment check tests a frozen reference fixture and detects changes to that fixture/profile plus scoring regressions. Monitoring distributions in each real production batch is a separate runtime data-monitoring control; a static CI fixture alone cannot detect a change in new daily customer data.
 
 ## 4. DAGs and local Airflow folder
 
