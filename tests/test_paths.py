@@ -10,6 +10,9 @@ def test_required_project_files_exist():
         "airflow/dags/02_preprocessing.py",
         "airflow/dags/03_batch_scoring.py",
         "scoring/score_if_else.py",
+        "tests/scoring_quality_gate.py",
+        "tests/test_quality_gate_unit.py",
+        "tests/fixtures/score_parity.json",
     ]
 
     for path in required:
@@ -71,3 +74,11 @@ def test_mlflow_tracking_is_removed_from_pipeline():
     for path in production_files:
         content = Path(path).read_text().lower()
         assert "mlflow" not in content, f"Unexpected MLflow reference in {path}"
+
+def test_deployment_requires_s3_scoring_quality_gate():
+    workflow = Path(".github/workflows/deploy-to-ec2.yml").read_text()
+    assert "score_quality_gate:" in workflow
+    assert "tests/scoring_quality_gate.py" in workflow
+    assert "SCORING_TEST_SAMPLE_S3_URI" in workflow
+    assert "SCORING_TEST_BASELINE_S3_URI" in workflow
+    assert "needs: [validate, score_quality_gate]" in workflow
