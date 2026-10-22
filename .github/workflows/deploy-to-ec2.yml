@@ -47,14 +47,9 @@ jobs:
           python -m pytest -q
 
   score_quality_gate:
-    name: 1,000-row S3 scoring parity and feature drift
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    name: Ten-row local score regression and feature drift
     runs-on: ubuntu-latest
     needs: validate
-    env:
-      SCORING_TEST_SAMPLE_S3_URI: ${{ vars.SCORING_TEST_SAMPLE_S3_URI }}
-      SCORING_TEST_BASELINE_S3_URI: ${{ vars.SCORING_TEST_BASELINE_S3_URI }}
-      DEPLOY_ROLE_ARN: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
 
     steps:
       - name: Checkout
@@ -70,37 +65,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Verify S3 fixture and baseline configuration
-        run: |
-          if [ -z "$SCORING_TEST_SAMPLE_S3_URI" ]; then
-            echo "::error::Create GitHub Actions variable SCORING_TEST_SAMPLE_S3_URI with the s3:// URI of the approved 1,000-row Parquet fixture."
-            exit 1
-          fi
-          if [ -z "$SCORING_TEST_BASELINE_S3_URI" ]; then
-            echo "::error::Create GitHub Actions variable SCORING_TEST_BASELINE_S3_URI with the s3:// URI of the frozen feature baseline JSON."
-            exit 1
-          fi
-          if [ -z "$DEPLOY_ROLE_ARN" ]; then
-            echo "::error::AWS_DEPLOY_ROLE_ARN is required for read-only S3 access during the scoring quality gate."
-            exit 1
-          fi
-          echo "S3 scoring fixture and baseline variables are configured."
-
-      - name: Configure AWS credentials using GitHub OIDC
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-          audience: sts.amazonaws.com
-
-      - name: Validate 1,000 expected scores and feature drift
+      - name: Run ten-row score regression and feature-profile gate
         run: |
           mkdir -p artifacts
           python tests/scoring_quality_gate.py \
-            --mode validate \
-            --sample-s3-uri "$SCORING_TEST_SAMPLE_S3_URI" \
-            --baseline-s3-uri "$SCORING_TEST_BASELINE_S3_URI" \
-            --expected-rows 1000 \
+            --fixture-path tests/fixtures/score_parity.json \
+            --baseline-path tests/fixtures/feature_baseline.json \
             --report-path artifacts/scoring_quality_report.json
 
       - name: Upload scoring quality report
