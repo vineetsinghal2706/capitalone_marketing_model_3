@@ -104,8 +104,8 @@ def snowflake_options():
 
     options = {
         "sfURL": url,
-        "sfUser": _secret_value(secret, "username", "user", "SNOWFLAKE_USER", "SNOWFLAKE_USERNAME", "sfUser"),
-        "sfPassword": _secret_value(secret, "password", "SNOWFLAKE_PASSWORD", "sfPassword"),
+        "sfUser": _secret_value(secret, "username", "USERNAME", "user", "SNOWFLAKE_USER", "SNOWFLAKE_USERNAME", "sfUser"),
+        "sfPassword": _secret_value(secret, "password", "PASSWORD", "SNOWFLAKE_PASSWORD", "sfPassword"),
         "sfDatabase": _secret_value(
             secret, "database", "dbname", "SNOWFLAKE_DATABASE", "sfDatabase", required=False,
             default=os.getenv("SNOWFLAKE_DATABASE", "INGEST_DATA")
