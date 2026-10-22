@@ -17,6 +17,10 @@ import boto3
 import numpy as np
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from scoring.score_if_else import FEATURE_NAMES, score_dataframe
 
 
@@ -413,6 +417,25 @@ def main():
 
         scoring = compare_scoring_output(frame, probability_tolerance)
         report["scoring_parity"] = scoring
+
+        # Keep a human-readable ten-row sample in the report in addition to
+        # checking all 1,000 reference outputs.
+        preview_columns = [
+            ID_COLUMN,
+            EXPECTED_SCORE_COLUMN,
+            EXPECTED_PREDICTION_COLUMN,
+            EXPECTED_PROBABILITY_COLUMN,
+        ]
+        preview = frame[preview_columns].head(10).copy()
+        preview = preview.rename(
+            columns={
+                EXPECTED_SCORE_COLUMN: "expected_score",
+                EXPECTED_PREDICTION_COLUMN: "expected_prediction",
+                EXPECTED_PROBABILITY_COLUMN: "expected_probability",
+            }
+        )
+        report["first_10_reference_cases"] = preview.to_dict(orient="records")
+
         if not scoring["passed"]:
             raise GateFailure(
                 "Scoring parity failed: "
@@ -441,6 +464,17 @@ def main():
             drift = compare_drift(current_stats, baseline)
             report["drift"] = drift
             if not drift["passed"]:
+                for item in drift["violations"]:
+                    print(
+                        "::error::Feature drift: "
+                        f"feature={item.get('feature')} "
+                        f"metric={item.get('metric')} "
+                        f"current={item.get('current')} "
+                        f"baseline={item.get('baseline')} "
+                        f"threshold={item.get('threshold')} "
+                        f"reason={item.get('reason', 'threshold exceeded')}",
+                        file=sys.stderr,
+                    )
                 raise GateFailure(
                     f"Feature drift check failed with {len(drift['violations'])} violation(s)."
                 )
