@@ -1,0 +1,395 @@
+{
+  "schema_version": 1,
+  "fixture_path": "tests/fixtures/score_parity.json",
+  "row_count": 10,
+  "feature_names": [
+    "age",
+    "annual_income",
+    "tenure_months",
+    "credit_score",
+    "existing_products",
+    "monthly_spend",
+    "avg_monthly_balance",
+    "digital_txn_ratio",
+    "mobile_logins_30d",
+    "branch_visits_6m",
+    "web_visits_30d",
+    "credit_utilization",
+    "delinquency_12m",
+    "marketing_contacts_90d",
+    "days_since_last_txn",
+    "campaign_month",
+    "campaign_quarter",
+    "campaign_dayofweek",
+    "campaign_is_weekend",
+    "campaign_month_sin",
+    "campaign_month_cos",
+    "log_income",
+    "log_monthly_spend",
+    "log_avg_balance",
+    "log_web_visits",
+    "spend_to_income",
+    "balance_to_income",
+    "digital_engagement",
+    "channel_engagement",
+    "product_penetration",
+    "delinquency_rate",
+    "contact_pressure",
+    "high_value_customer",
+    "digital_customer",
+    "credit_risk_flag",
+    "income_x_credit_score",
+    "digital_x_spend",
+    "tenure_x_products"
+  ],
+  "thresholds": {
+    "max_missing_rate_delta": 0.02,
+    "max_mean_shift_in_baseline_std": 0.5,
+    "max_std_relative_change": 0.25
+  },
+  "features": {
+    "age": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 43.1,
+      "std": 14.145670715805595,
+      "min": 22,
+      "max": 68
+    },
+    "annual_income": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 97500,
+      "std": 56919.5338467677,
+      "min": 27000,
+      "max": 198000
+    },
+    "tenure_months": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 76.8,
+      "std": 55.32289058086374,
+      "min": 8,
+      "max": 180
+    },
+    "credit_score": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 667,
+      "std": 94.78748159259568,
+      "min": 510,
+      "max": 810
+    },
+    "existing_products": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 3.2,
+      "std": 1.7511900715418263,
+      "min": 1,
+      "max": 6
+    },
+    "monthly_spend": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 7252,
+      "std": 7075.335563302517,
+      "min": 220,
+      "max": 20000
+    },
+    "avg_monthly_balance": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 30453,
+      "std": 33497.3246195374,
+      "min": 80,
+      "max": 99000
+    },
+    "digital_txn_ratio": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.528,
+      "std": 0.31894966513368356,
+      "min": 0.1,
+      "max": 0.95
+    },
+    "mobile_logins_30d": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 28.5,
+      "std": 25.820964781011227,
+      "min": 2,
+      "max": 78
+    },
+    "branch_visits_6m": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 3.7,
+      "std": 2.869378562220979,
+      "min": 0,
+      "max": 9
+    },
+    "web_visits_30d": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 19,
+      "std": 13.324997394204456,
+      "min": 2,
+      "max": 41
+    },
+    "credit_utilization": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.517,
+      "std": 0.3434805509616067,
+      "min": 0.08,
+      "max": 0.95
+    },
+    "delinquency_12m": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 1.3,
+      "std": 1.4181364924121764,
+      "min": 0,
+      "max": 4
+    },
+    "marketing_contacts_90d": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 4.5,
+      "std": 3.1710495984067415,
+      "min": 1,
+      "max": 10
+    },
+    "days_since_last_txn": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 103.9,
+      "std": 119.83178024028334,
+      "min": 1,
+      "max": 364
+    },
+    "campaign_month": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 6.2,
+      "std": 3.6453928305312844,
+      "min": 1,
+      "max": 12
+    },
+    "campaign_quarter": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 2.4,
+      "std": 1.1737877907772674,
+      "min": 1,
+      "max": 4
+    },
+    "campaign_dayofweek": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 3.9,
+      "std": 1.911950719959998,
+      "min": 1,
+      "max": 7
+    },
+    "campaign_is_weekend": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.2,
+      "std": 0.42163702135578396,
+      "min": 0,
+      "max": 1
+    },
+    "campaign_month_sin": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 4.4408920985006264e-17,
+      "std": 0.7817359599705715,
+      "min": -1,
+      "max": 1
+    },
+    "campaign_month_cos": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": -3.7844387623664487e-10,
+      "std": 0.7071067806715507,
+      "min": -1,
+      "max": 1
+    },
+    "log_income": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 11.311872236447844,
+      "std": 0.6549769043309845,
+      "min": 10.203629181337648,
+      "max": 12.19602736016897
+    },
+    "log_monthly_spend": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 8.18922037278232,
+      "std": 1.507248516242653,
+      "min": 5.3981627015177525,
+      "max": 9.90353755128617
+    },
+    "log_avg_balance": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 9.008736258970332,
+      "std": 2.4323396989452717,
+      "min": 4.394449154672439,
+      "max": 11.502885230075814
+    },
+    "log_web_visits": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 2.7076536699389444,
+      "std": 0.8983755921703896,
+      "min": 1.0986122886681096,
+      "max": 3.7376696182833684
+    },
+    "spend_to_income": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.7442364350787767,
+      "std": 0.644431882840691,
+      "min": 0.09773434029320302,
+      "max": 2.3073880367424078
+    },
+    "balance_to_income": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 2.837476185979599,
+      "std": 2.7534716166071203,
+      "min": 0.03553976010661928,
+      "max": 8.306596932272667
+    },
+    "digital_engagement": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.430649801980198,
+      "std": 0.2989063668974716,
+      "min": 0.06,
+      "max": 0.8789108910891089
+    },
+    "channel_engagement": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 47.5,
+      "std": 38.2106733198403,
+      "min": 5,
+      "max": 119
+    },
+    "product_penetration": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.510018139287613,
+      "std": 0.17576286674351277,
+      "min": 0.31578947368421056,
+      "max": 0.923
+    },
+    "delinquency_rate": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.10833,
+      "std": 0.11817882500267272,
+      "min": 0,
+      "max": 0.3333333333333333
+    },
+    "contact_pressure": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 1.5000666666666669,
+      "std": 1.057028221822102,
+      "min": 0.3333333333333333,
+      "max": 3.3333333333333335
+    },
+    "high_value_customer": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.3,
+      "std": 0.48304589153964794,
+      "min": 0,
+      "max": 1
+    },
+    "digital_customer": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.4,
+      "std": 0.5163977794943222,
+      "min": 0,
+      "max": 1
+    },
+    "credit_risk_flag": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 0.5,
+      "std": 0.5270462766947299,
+      "min": 0,
+      "max": 1
+    },
+    "income_x_credit_score": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 695.0600000000001,
+      "std": 489.0764452630193,
+      "min": 168.75,
+      "max": 1603.8
+    },
+    "digital_x_spend": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 5596.16,
+      "std": 6823.400907530561,
+      "min": 28.6,
+      "max": 19000
+    },
+    "tenure_x_products": {
+      "row_count": 10,
+      "missing_count": 0,
+      "missing_rate": 0,
+      "mean": 328,
+      "std": 345.7886316491301,
+      "min": 8,
+      "max": 1080
+    }
+  },
+  "note": "Frozen feature profile for the ten local scoring regression cases. Update only after reviewed fixture changes; this detects changes to the committed fixture profile and is not production-batch drift monitoring."
+}
