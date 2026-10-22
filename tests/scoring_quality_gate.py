@@ -424,9 +424,14 @@ def main():
         preview_scored = score_dataframe(preview_inputs)
         preview_cases = []
         for i in range(min(10, len(frame))):
+            input_values = {}
+            for feature in FEATURE_NAMES:
+                value = frame.iloc[i][feature]
+                input_values[feature] = None if pd.isna(value) else float(value)
             preview_cases.append(
                 {
                     "customer_id": str(frame.iloc[i][ID_COLUMN]),
+                    "inputs": input_values,
                     "expected_score": int(frame.iloc[i][EXPECTED_SCORE_COLUMN]),
                     "actual_score": int(preview_scored.iloc[i]["score"]),
                     "expected_prediction": int(frame.iloc[i][EXPECTED_PREDICTION_COLUMN]),
