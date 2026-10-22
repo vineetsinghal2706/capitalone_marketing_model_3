@@ -3,35 +3,6 @@ import io
 import json
 import os
 import sys
-import tempfile
-from datetime import datetime, timezone
-
-# Work around duplicate SageMaker MLflow plugin metadata in this EC2 venv.
-# The venv exposes both lib/ and lib64/ site-packages; loading both registers
-# the request-header provider twice and duplicates x-mlflow-sm-tracking-server-arn.
-# Remove the lib/ path before importing MLflow so only lib64/ is used.
-_site_packages_version = (
-    f"python{sys.version_info.major}.{sys.version_info.minor}"
-)
-_duplicate_site_packages = os.path.abspath(
-    os.path.join(sys.prefix, "lib", _site_packages_version, "site-packages")
-)
-_lib64_site_packages = os.path.abspath(
-    os.path.join(sys.prefix, "lib64", _site_packages_version, "site-packages")
-)
-# Remove the duplicate lib/ entry only when lib64/ is also on sys.path.
-# On standard CI Python installations, lib/ may be the only site-packages path;
-# removing it unconditionally would make installed dependencies unimportable.
-_has_lib64_site_packages = os.path.isdir(_lib64_site_packages) and any(
-    os.path.abspath(entry or os.getcwd()) == _lib64_site_packages
-    for entry in sys.path
-)
-if _has_lib64_site_packages:
-    sys.path[:] = [
-        entry
-        for entry in sys.path
-        if os.path.abspath(entry or os.getcwd()) != _duplicate_site_packages
-    ]
 
 # Support direct execution as ".venv/bin/python jobs/batch_score.py" by
 # explicitly adding the repository root before importing the scorer package.
@@ -40,7 +11,6 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import boto3
-import mlflow
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
@@ -59,13 +29,9 @@ from scoring.score_if_else import score_dataframe
 # CONFIGURATION
 # ============================================================
 
-DEFAULT_EXPERIMENT_NAME = "bank-marketing-scoring"
 
 MODEL_NAME = "MarketingResponseGBM"
-MODEL_VERSION = "1.0"
-MODEL_TYPE = "XGBoost"
 NUMBER_OF_TREES = 100
-SCORING_METHOD = "IF_ELSE"
 
 
 # ============================================================
@@ -396,264 +362,6 @@ def calculate_metrics(
 
 
 # ============================================================
-# MLFLOW
-# ============================================================
-
-def configure_mlflow():
-    """
-    Configure SageMaker managed MLflow.
-
-    The environment variable should contain the
-    SageMaker MLflow Tracking Server ARN.
-
-    Example:
-
-    MLFLOW_TRACKING_URI=
-    arn:aws:sagemaker:us-east-1:783495713343:
-    mlflow-tracking-server/marketing-mlflow-server
-    """
-
-    tracking_uri = os.getenv(
-        "MLFLOW_TRACKING_URI"
-    )
-
-    if not tracking_uri:
-
-        print(
-            "MLFLOW_TRACKING_URI is not configured."
-        )
-
-        print(
-            "MLflow logging will be disabled."
-        )
-
-        return False
-
-    print(
-        f"MLflow Tracking URI: {tracking_uri}"
-    )
-
-    mlflow.set_tracking_uri(
-        tracking_uri
-    )
-
-    experiment_name = os.getenv(
-        "MLFLOW_EXPERIMENT_NAME",
-        DEFAULT_EXPERIMENT_NAME
-    )
-
-    print(
-        f"MLflow Experiment: {experiment_name}"
-    )
-
-    mlflow.set_experiment(
-        experiment_name
-    )
-
-    return True
-
-
-def log_mlflow_run(
-    run_date,
-    input_s3,
-    output_s3,
-    metrics_s3,
-    metrics,
-    scored_df,
-    metrics_file_local
-):
-    """
-    Create one MLflow run for this scoring execution.
-    """
-
-    experiment_name = os.getenv(
-        "MLFLOW_EXPERIMENT_NAME",
-        DEFAULT_EXPERIMENT_NAME
-    )
-
-    run_name = (
-        f"scoring-{run_date}-"
-        f"{datetime.now(timezone.utc).strftime('%H%M%S')}"
-    )
-
-    print(
-        f"Starting MLflow run: {run_name}"
-    )
-
-    with mlflow.start_run(
-        run_name=run_name
-    ) as run:
-
-        # ----------------------------------------------------
-        # Parameters
-        # ----------------------------------------------------
-
-        mlflow.log_params({
-
-            "model_name": MODEL_NAME,
-
-            "model_version": MODEL_VERSION,
-
-            "model_type": MODEL_TYPE,
-
-            "number_of_trees": NUMBER_OF_TREES,
-
-            "scoring_method": SCORING_METHOD,
-
-            "run_date": run_date,
-
-            "input_s3": input_s3,
-
-            "output_s3": output_s3,
-
-            "metrics_s3": metrics_s3,
-
-            "experiment_name": experiment_name
-
-        })
-
-        # ----------------------------------------------------
-        # Operational metrics
-        # ----------------------------------------------------
-
-        numeric_metrics = {}
-
-        operational_metric_names = [
-            "row_count",
-            "evaluation_rows",
-            "score_min",
-            "score_max",
-            "score_mean",
-            "score_median",
-            "probability_min",
-            "probability_max",
-            "probability_mean",
-            "prediction_rate",
-            "actual_response_rate"
-        ]
-
-        for metric_name in operational_metric_names:
-
-            value = metrics.get(
-                metric_name
-            )
-
-            if value is not None:
-
-                numeric_metrics[
-                    metric_name
-                ] = float(value)
-
-        # ----------------------------------------------------
-        # Model performance metrics
-        # ----------------------------------------------------
-
-        performance_metric_names = [
-            "accuracy",
-            "precision",
-            "recall",
-            "f1",
-            "roc_auc",
-            "log_loss"
-        ]
-
-        for metric_name in performance_metric_names:
-
-            value = metrics.get(
-                metric_name
-            )
-
-            if value is not None:
-
-                numeric_metrics[
-                    metric_name
-                ] = float(value)
-
-        # ----------------------------------------------------
-        # Log metrics
-        # ----------------------------------------------------
-
-        if numeric_metrics:
-
-            mlflow.log_metrics(
-                numeric_metrics
-            )
-
-        # ----------------------------------------------------
-        # Log metrics JSON
-        # ----------------------------------------------------
-
-        if os.path.exists(
-            metrics_file_local
-        ):
-
-            mlflow.log_artifact(
-                metrics_file_local,
-                artifact_path="metrics"
-            )
-
-        # ----------------------------------------------------
-        # Create scoring summary artifact
-        # ----------------------------------------------------
-
-        summary = {
-
-            "run_name": run_name,
-
-            "run_id": run.info.run_id,
-
-            "run_date": run_date,
-
-            "model_name": MODEL_NAME,
-
-            "model_version": MODEL_VERSION,
-
-            "number_of_trees": NUMBER_OF_TREES,
-
-            "scoring_method": SCORING_METHOD,
-
-            "input_s3": input_s3,
-
-            "output_s3": output_s3,
-
-            "metrics_s3": metrics_s3,
-
-            "metrics": metrics
-
-        }
-
-        summary_file = os.path.join(
-            tempfile.gettempdir(),
-            "mlflow_scoring_summary.json"
-        )
-
-        with open(
-            summary_file,
-            "w"
-        ) as f:
-
-            json.dump(
-                summary,
-                f,
-                indent=2,
-                default=str
-            )
-
-        mlflow.log_artifact(
-            summary_file,
-            artifact_path="scoring"
-        )
-
-        print(
-            "MLflow run completed."
-        )
-
-        print(
-            f"MLflow Run ID: {run.info.run_id}"
-        )
-
-
-# ============================================================
 # MAIN
 # ============================================================
 
@@ -747,43 +455,6 @@ def main():
     print(
         f"Trees          : {NUMBER_OF_TREES}"
     )
-
-    # ========================================================
-    # Configure MLflow
-    # ========================================================
-
-    mlflow_enabled = False
-    mlflow_required = os.getenv("MLFLOW_REQUIRED", "false").strip().lower() in {
-        "1", "true", "yes", "y"
-    }
-
-    try:
-
-        mlflow_enabled = configure_mlflow()
-
-    except Exception as e:
-
-        if mlflow_required:
-            raise RuntimeError(
-                "MLflow configuration failed while MLFLOW_REQUIRED is enabled."
-            ) from e
-
-        print(
-            "WARNING: MLflow configuration failed."
-        )
-
-        print(
-            f"MLflow error: {e}"
-        )
-
-        print(
-            "Scoring will continue without MLflow."
-        )
-
-    if mlflow_required and not mlflow_enabled:
-        raise RuntimeError(
-            "MLFLOW_REQUIRED is enabled, but MLflow tracking was not configured."
-        )
 
     # ========================================================
     # Find input files
@@ -954,68 +625,6 @@ def main():
     )
 
     # ========================================================
-    # MLflow
-    # ========================================================
-
-    if mlflow_enabled:
-
-        try:
-
-            with tempfile.NamedTemporaryFile(
-                mode="w",
-                suffix=".json",
-                delete=False
-            ) as tmp:
-
-                json.dump(
-                    metrics,
-                    tmp,
-                    indent=2,
-                    default=str
-                )
-
-                metrics_file_local = tmp.name
-
-            log_mlflow_run(
-                run_date=run_date,
-                input_s3=input_s3,
-                output_s3=output_s3,
-                metrics_s3=metrics_s3,
-                metrics=metrics,
-                scored_df=scored_df,
-                metrics_file_local=metrics_file_local
-            )
-
-            try:
-
-                os.remove(
-                    metrics_file_local
-                )
-
-            except OSError:
-
-                pass
-
-        except Exception as e:
-
-            if mlflow_required:
-                raise RuntimeError(
-                    "MLflow metric/artifact logging failed while MLFLOW_REQUIRED is enabled."
-                ) from e
-
-            print(
-                "\nWARNING: MLflow logging failed."
-            )
-
-            print(
-                f"MLflow error: {e}"
-            )
-
-            print(
-                "Scoring and S3 output were successful."
-            )
-
-    # ========================================================
     # Final summary
     # ========================================================
 
@@ -1043,9 +652,6 @@ def main():
         f"Metrics          : {metrics_s3}"
     )
 
-    print(
-        f"MLflow enabled   : {mlflow_enabled}"
-    )
 
     print("=" * 70)
 
