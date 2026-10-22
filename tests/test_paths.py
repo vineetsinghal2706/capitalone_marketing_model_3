@@ -61,3 +61,13 @@ def test_s3_bucket_is_not_hardcoded_in_jobs_or_dags():
 def test_no_docker_deployment_files():
     assert not Path("Dockerfile").exists()
     assert not Path(".github/workflows/scoring.yml").exists()
+
+def test_mlflow_tracking_is_removed_from_pipeline():
+    production_files = [
+        "jobs/batch_score.py",
+        "airflow/dags/03_batch_scoring.py",
+        "requirements.txt",
+    ]
+    for path in production_files:
+        content = Path(path).read_text().lower()
+        assert "mlflow" not in content, f"Unexpected MLflow reference in {path}"
